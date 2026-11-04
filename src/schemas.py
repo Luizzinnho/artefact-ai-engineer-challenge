@@ -9,13 +9,11 @@ class ProductFilters(BaseModel):
     min_price: float | None
     max_price: float | None
     available_only: bool | None
-    
 
 
 class OrderLookup(BaseModel):
     order_id: str | None
     customer_email: str | None
-    
 
 
 class Command(BaseModel):
@@ -23,6 +21,7 @@ class Command(BaseModel):
         "SEARCH_PRODUCTS",
         "QUERY_ORDER",
         "QUERY_POLICY",
+        "QUERY_PROMOTIONS",
         "OUT_OF_SCOPE",
     ]
 
@@ -30,9 +29,9 @@ class Command(BaseModel):
     product_filters: ProductFilters | None
     order_lookup: OrderLookup | None
     policy_topic: str | None
+    missing_fields: list[str]
 
 
 class SemanticInterpretation(BaseModel):
     schema_version: Literal["1.0"]
     commands: list[Command]
-
