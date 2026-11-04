@@ -82,12 +82,3 @@ def interpret_message(message: str) -> SemanticInterpretation:
         raise ValueError("A LLM não retornou uma interpretação válida.")
 
     return response.output_parsed
-
-
-
-if __name__ == "__main__":
-    result = interpret_message(
-        "Quero violões até 1500 reais e saber a política de devolução."
-    )
-
-    print(result.model_dump_json(indent=2))
