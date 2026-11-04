@@ -16,11 +16,4 @@ def load_policies():
     full_text = "\n".join(page_texts)
 
     return full_text
-
-
-
-text = load_policies()
-
-print(text[-500:])
-
-        
+    
