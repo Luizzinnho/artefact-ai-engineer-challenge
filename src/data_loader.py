@@ -48,12 +48,14 @@ def load_promotions() -> pd.DataFrame:
 
 # 2. PRODUCT SEARCH
 
+
 def search_products(
     name: str | None = None,
     max_price: float | None = None,
     min_price: float | None = None,
     category: str | None = None,
     available_only: bool | None = None,
+    product_id: int | None = None,
 ) -> pd.DataFrame:
 
     products = load_products()
@@ -68,6 +70,11 @@ def search_products(
         how="left",
     )
 
+    if product_id is not None:
+        filtered = filtered[
+            filtered["product_id"] == product_id
+        ]
+
     if name is not None:
         filtered = filtered[
             filtered["name"].str.contains(
@@ -79,10 +86,14 @@ def search_products(
         ]
 
     if max_price is not None:
-        filtered = filtered[filtered["price_brl"] <= max_price]
+        filtered = filtered[
+            filtered["price_brl"] <= max_price
+        ]
 
     if min_price is not None:
-        filtered = filtered[filtered["price_brl"] >= min_price]
+        filtered = filtered[
+            filtered["price_brl"] >= min_price
+        ]
 
     if category is not None:
         category_key = category.strip().lower()
@@ -173,8 +184,9 @@ def query_order(
 
 # 4. PROMOTION SEARCH
 
+
 def search_promotions(
-    product_id: int,
+    product_id: int | None = None,
 ) -> pd.DataFrame | None:
 
     promotions = load_promotions()
@@ -183,35 +195,82 @@ def search_promotions(
         promotions["is_active"] == 1
     ]
 
-    filtered = active[
-        active["product_id"] == product_id
-    ]
+    if product_id is not None:
+        active = active[
+            active["product_id"] == product_id
+        ]
 
-    if filtered.empty:
+    if active.empty:
         return None
 
-    best_promotion = filtered.nlargest(
-        1,
-        "discount_percent",
+    products = load_products()
+
+    merged = pd.merge(
+        left=active,
+        right=products[[
+            "product_id",
+            "name",
+            "price_brl",
+            "status",
+            "stock_quantity",
+        ]],
+        on="product_id",
+        how="inner",
     )
 
-    return best_promotion.copy()
+    available = merged[
+        (merged["status"] == "active")
+        & (merged["stock_quantity"] > 0)
+    ]
+
+    if available.empty:
+        return None
+
+    best_promotions = (
+        available.sort_values(
+            by=["product_id", "discount_percent", "promotion_id"],
+            ascending=[True, False, True],
+        )
+        .drop_duplicates(
+            subset="product_id",
+            keep="first",
+        )
+        .copy()
+    )
+
+    best_promotions["promotional_price_brl"] = (
+        best_promotions["price_brl"]
+        * (1 - best_promotions["discount_percent"] / 100)
+    ).round(2)
+
+    best_promotions["pix_price_brl"] = (
+        best_promotions["price_brl"] * 0.95
+    ).round(2)
+
+    return best_promotions.reset_index(drop=True)
+
+
+
+
+
+
 
 
 # 5. MANUAL CHECK
 
 if __name__ == "__main__":
-    promotions = load_promotions()
 
-    active = promotions[
-        promotions["is_active"] == 1
-    ]
+    print(search_products(product_id=127)[["product_id", "name"]])
 
-    print(f"Promoções ativas: {len(active)}")
+    result = search_promotions()
 
-    if not active.empty:
-        product_id = int(active.iloc[0]["product_id"])
-        result = search_promotions(product_id)
+    if result is not None:
+        print(result[[
+        "product_id",
+        "name",
+        "discount_percent",
+        "promotional_price_brl",
+        "pix_price_brl",
+        ]].to_string(index=False))
 
-        if result is not None:
-            print(result.to_string(index=False))
+        assert result["product_id"].is_unique
