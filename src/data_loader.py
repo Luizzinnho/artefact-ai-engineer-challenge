@@ -76,3 +76,89 @@ def search_products(
             ]
 
     return filtered
+
+#QUERY LOADER:
+
+
+def load_orders() -> pd.DataFrame:
+    return pd.read_csv(DATA_DIR / "desafio_tecnico_ai_eng - orders.csv")
+
+def load_customers() -> pd.DataFrame:
+    return pd.read_csv(DATA_DIR / "desafio_tecnico_ai_eng - customers.csv")
+
+def load_order_items() -> pd.DataFrame:
+    return pd.read_csv(DATA_DIR / "desafio_tecnico_ai_eng - order_items.csv")
+
+def query_order(order_id: int, customer_email: str):
+    orders = load_orders()
+    customers = load_customers()
+    merged = pd.merge(
+        left=orders,
+        right=customers[["customer_id", "email"]],
+        on="customer_id",
+        how="inner"
+    )
+    filtered = merged[
+        (merged["order_id"] == order_id) &
+        (merged["email"].str.lower() == customer_email.strip().lower())               
+        ]
+    if filtered.empty:
+        return None
+
+    items = load_order_items()
+
+    order_with_items = pd.merge(
+        left=filtered,
+        right=items,
+        on="order_id",
+        how="left"
+    )
+
+    products = load_products()
+    merged = pd.merge(
+        left=order_with_items,
+        right=products[["product_id", "name"]],
+        on="product_id",
+        how="left"
+    )
+
+    return merged[[
+        "order_id",
+        "order_date",
+        "status",
+        "total_brl",
+        "payment_method",
+        "tracking_code",
+        "estimated_delivery",
+        "name",
+        "quantity"
+    ]].copy()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    result = query_order(1, "pedro.oliveira@jmail.com")
+    assert query_order(1, "email.incorreto@exemplo.com") is None
+    if result is not None:
+        print(result[["order_id", "status", "name", "quantity", "total_brl"]])
+    else:
+        print("Pedido não encontrado.")
