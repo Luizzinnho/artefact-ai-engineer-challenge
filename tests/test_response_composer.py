@@ -55,7 +55,7 @@ def test_composer_sends_original_message_and_results(mock_openai):
 
     kwargs = mock_openai.responses.create.call_args.kwargs
 
-    assert kwargs["model"] == "gpt-5.6-luna"
+    assert kwargs["model"] == composer.OPENAI_MODEL
     assert "Empório da Música" in kwargs["instructions"]
     assert "Vocês têm um violão Yamaha?" in kwargs["input"]
     assert "Yamaha C40 Nylon Natural" in kwargs["input"]

@@ -1,6 +1,8 @@
 import json
 from openai import OpenAI
 
+from src.config import OPENAI_MODEL
+
 
 def compose_response(
     user_message: str,
@@ -73,7 +75,7 @@ def compose_response(
     {results_json}
     """
     response = client.responses.create(
-        model="gpt-5.6-luna",
+        model=OPENAI_MODEL,
         instructions=system_prompt,
         input=user_input,
     )

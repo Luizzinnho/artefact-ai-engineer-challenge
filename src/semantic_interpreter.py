@@ -1,12 +1,11 @@
 
-from dotenv import load_dotenv
 from openai import OpenAI
 
+from src.config import OPENAI_MODEL
 from src.schemas import SemanticInterpretation
 from src.brand_normalizer import get_catalog_brands
 
 
-load_dotenv()
 
 client = OpenAI()
 
@@ -160,7 +159,7 @@ def interpret_message(message: str) -> SemanticInterpretation:
     """
 
     response = client.responses.parse(
-        model="gpt-5.6-luna",
+        model=OPENAI_MODEL,
         instructions=system_prompt,
         input=message,
         text_format=SemanticInterpretation,
