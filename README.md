@@ -1,77 +1,77 @@
-# Empório da Música — Assistente de atendimento com IA
+# Empório da Música — AI Customer Service Assistant
 
-Projeto desenvolvido em Python para o desafio técnico de AI Engineer da Artefact. O assistente interpreta mensagens de clientes de uma loja fictícia de instrumentos musicais e responde a perguntas sobre produtos, pedidos, promoções e políticas comerciais.
+Python project developed for Artefact's AI Engineer technical challenge. The assistant interprets messages from customers of a fictional musical instrument store and answers questions about products, orders, promotions, and store policies.
 
-A interação acontece pelo terminal. Os dados utilizados são os arquivos CSV e o PDF de políticas fornecidos no desafio. Não há integração com um sistema de vendas real.
+The interface runs in a terminal. It uses the CSV files and store policy PDF supplied with the challenge; it does not connect to a live sales system.
 
-## Como funciona
+## How it works
 
-A implementação separa a interpretação da mensagem, a consulta aos dados e a redação da resposta:
+The implementation separates message interpretation, data retrieval, and response generation:
 
 ```text
-Mensagem do cliente
+Customer message
         |
         v
 Semantic Interpreter (OpenAI API)
         |
         v
-Comandos estruturados (Pydantic)
+Structured commands (Pydantic)
         |
         v
 Executor (Python / pandas)
         |
-        +---- CSV: produtos, categorias, pedidos e promoções
+        +---- CSV: products, categories, orders, and promotions
         |
-        +---- PDF: políticas da loja
+        +---- PDF: store policies
         |
         v
-Resultados verificados
+Verified results
         |
         v
 Response Composer (OpenAI API)
         |
         v
-Resposta ao cliente
+Customer-facing response
 ```
 
-O primeiro modelo identifica as intenções do usuário e produz comandos em um formato definido com Pydantic. O executor interpreta esses comandos e consulta os arquivos locais, aplicando filtros e regras comerciais em Python. Por fim, um segundo modelo transforma os resultados em uma resposta natural.
+The first model identifies the customer's intent and produces commands following a Pydantic schema. The executor processes those commands and queries the local files, applying filters and business rules in Python. A second model then turns the results into a natural-language response.
 
-A opção por duas etapas com LLM foi uma escolha de arquitetura: o modelo pode lidar com diferentes maneiras de formular uma pergunta, mas não recebe a responsabilidade de consultar arquivos ou decidir valores comerciais por conta própria. Isso não elimina a possibilidade de erro na interpretação ou na redação; torna essas etapas mais fáceis de inspecionar e testar separadamente.
+Using two LLM stages was an architectural choice. The model can handle different ways of phrasing a request, but it is not responsible for reading the files or independently determining commercial values. This does not eliminate interpretation or generation errors; it makes those stages easier to inspect and test separately.
 
-## Funcionalidades
+## Features
 
-O executor reconhece cinco operações:
+The executor supports five operations:
 
-| Intenção | Responsabilidade |
+| Intent | Responsibility |
 | --- | --- |
-| `SEARCH_PRODUCTS` | Buscar produtos por categoria, marca, modelo, característica, preço e disponibilidade |
-| `QUERY_ORDER` | Consultar um pedido por número e e-mail informado pelo cliente |
-| `QUERY_POLICY` | Consultar o documento de políticas comerciais, incluindo entregas, horários e devoluções |
-| `QUERY_PROMOTIONS` | Buscar promoções ativas e calcular os preços aplicáveis |
-| `OUT_OF_SCOPE` | Identificar solicitações que o assistente não consegue atender |
+| `SEARCH_PRODUCTS` | Search by category, brand, model, features, price, and availability |
+| `QUERY_ORDER` | Look up an order using its number and the customer's email |
+| `QUERY_POLICY` | Consult store policies, including shipping, opening hours, and returns |
+| `QUERY_PROMOTIONS` | Find active promotions and calculate applicable prices |
+| `OUT_OF_SCOPE` | Identify requests the assistant cannot handle |
 
-Uma mensagem pode gerar vários comandos. Assim, o cliente pode perguntar sobre um produto e o horário da loja na mesma interação.
+One message can produce multiple commands. For example, a customer can ask about a product and the store's opening hours in the same message.
 
-Algumas regras de busca receberam tratamento específico. Uma marca digitada como `Tajima` pode ser normalizada para `Tagima` quando a correspondência é suficientemente clara. A expressão `Yamaha ou Tagima` é tratada como uma alternativa entre marcas. Características como `folk` são procuradas no nome e na descrição dos produtos, sem serem confundidas com um modelo específico.
+Some search cases require specific handling. A misspelled brand such as `Tajima` can be normalized to `Tagima` when the match is sufficiently clear. `Yamaha or Tagima` is handled as an alternative between brands. Features such as `folk` are searched for in product names and descriptions rather than treated as a specific model.
 
-Na consulta de pedidos, o sistema exige número e e-mail correspondentes antes de retornar os dados. Em promoções, os limites de preço são aplicados ao preço promocional e os descontos de promoção e PIX não são acumulados.
+For order lookups, the system requires a matching order number and email before returning data. For promotions, price limits are applied to promotional prices, and promotional and PIX payment discounts cannot be combined.
 
-## Tecnologias e organização
+## Technology and project structure
 
-Python, OpenAI API, Pydantic, pandas, pypdf, python-dotenv e pytest.
+Python, OpenAI API, Pydantic, pandas, pypdf, python-dotenv, and pytest.
 
 ```text
 .
-├── data/                       # Seis arquivos CSV e políticas_da_loja.pdf
+├── data/                       # Six CSV files and políticas_da_loja.pdf
 ├── src/
-│   ├── brand_normalizer.py     # Identificação e normalização de marcas
-│   ├── config.py               # Configuração do modelo por variável de ambiente
-│   ├── data_loader.py          # Consultas aos dados tabulares
-│   ├── executor.py             # Execução dos comandos interpretados
-│   ├── policy_loader.py        # Extração do texto do PDF
-│   ├── response_composer.py    # Redação da resposta final
-│   ├── schemas.py              # Contratos de dados com Pydantic
-│   └── semantic_interpreter.py # Interpretação da mensagem com LLM
+│   ├── brand_normalizer.py     # Brand identification and normalization
+│   ├── config.py               # Model configuration via environment variable
+│   ├── data_loader.py          # Tabular data queries
+│   ├── executor.py             # Execution of interpreted commands
+│   ├── policy_loader.py        # PDF text extraction
+│   ├── response_composer.py    # Customer-facing response generation
+│   ├── schemas.py              # Pydantic data contracts
+│   └── semantic_interpreter.py # LLM-based message interpretation
 ├── tests/
 ├── .env.example
 ├── main.py
@@ -79,9 +79,9 @@ Python, OpenAI API, Pydantic, pandas, pypdf, python-dotenv e pytest.
 └── README.md
 ```
 
-## Instalação
+## Setup
 
-O desenvolvimento e os testes locais foram realizados em Windows com Python 3.14.3. Para reproduzir o ambiente:
+Development and local testing were carried out on Windows with Python 3.14.3. To reproduce the environment:
 
 ```bash
 git clone https://github.com/Luizzinnho/artefact-ai-engineer-challenge.git
@@ -89,121 +89,121 @@ cd artefact-ai-engineer-challenge
 python -m venv .venv
 ```
 
-No PowerShell, instale as dependências e execute o programa usando o Python do ambiente virtual:
+In PowerShell, install dependencies with the virtual environment's Python and create your local configuration file:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Edite o `.env` e configure sua própria chave:
+Edit `.env` and provide your own API key:
 
 ```dotenv
-OPENAI_API_KEY=sua_chave_da_api
-OPENAI_MODEL=gpt-4.1-mini
+OPENAI_API_KEY=your_api_key
+OPENAI_MODEL=gpt-5.6-luna
 ```
 
-O parâmetro `OPENAI_MODEL` é opcional e permite escolher outro modelo compatível com a Responses API e com Structured Outputs. O acesso a cada modelo depende da conta e da configuração da API. O arquivo `.env` não é versionado.
+`OPENAI_MODEL` is optional. You can set it to another model available to your account that supports the Responses API and Structured Outputs. The project was primarily tested with `gpt-5.6-luna`; a basic end-to-end compatibility test was also performed with `gpt-4.1-mini`. Access to individual models depends on the API account. The `.env` file is excluded from version control.
 
-Para iniciar:
+Run the assistant:
 
 ```powershell
 .\.venv\Scripts\python.exe main.py
 ```
 
-O atendimento recebe mensagens até que o usuário digite `sair`. As chamadas de modelo utilizam a API da OpenAI e podem gerar custos.
+The terminal accepts messages until the customer enters `sair` (Portuguese for "exit"). OpenAI API calls may incur usage charges.
 
-## Conversas de exemplo
+## Example conversations
 
-Os exemplos abaixo foram observados durante testes manuais. Nas respostas com listas, a apresentação foi condensada sem alterar nomes ou valores.
+The following cases were observed during manual tests conducted in Portuguese. Customer prompts and assistant responses below are translated into English for this submission. Responses containing lists have been shortened without changing product names or numerical values.
 
-### Busca por marcas alternativas
+### Search with alternative brands
 
-**Cliente:** Gostaria de um violão folk de até 1000 reais, de preferência Yamaha ou Tagima.
+**Customer:** I would like a folk acoustic guitar for up to BRL 1,000, preferably Yamaha or Tagima.
 
-**Assistente:** Encontrei duas opções de violão folk de aço, Yamaha e Tagima, por até R$ 1.000:
+**Assistant:** I found two steel-string folk acoustic guitars from Yamaha and Tagima within your budget:
 
-- Tagima Dallas Tuner Aço Natural — R$ 749,00; 9 unidades em estoque.
-- Yamaha F310 Aço Natural — R$ 699,90; 14 unidades em estoque.
+- Tagima Dallas Tuner Aço Natural — BRL 749.00; 9 units in stock.
+- Yamaha F310 Aço Natural — BRL 699.90; 14 units in stock.
 
-Os dois estão dentro do orçamento e disponíveis.
+Both are available and within your budget.
 
-### Promoções com limite de preço
+### Promotions with a price limit
 
-**Cliente:** Quais instrumentos estão em promoção por menos de 400 reais?
+**Customer:** Which instruments are on promotion for less than BRL 400?
 
-**Assistente:** Encontrei este instrumento em promoção por menos de R$ 400:
+**Assistant:** I found one instrument on promotion for under BRL 400:
 
-- Kalani KAL-700T Tenor Natural — de R$ 359,00 por R$ 323,10 (10% de desconto); 11 unidades em estoque.
+- Kalani KAL-700T Tenor Natural — from BRL 359.00 to BRL 323.10 (10% off); 11 units in stock.
 
-Os descontos promocional e PIX não são cumulativos.
+Promotional discounts cannot be combined with the PIX payment discount.
 
-### Consulta de pedido sem todos os dados
+### Order lookup with missing information
 
-**Cliente:** Meu pedido é o número 1, mas não lembro o e-mail usado na compra.
+**Customer:** My order number is 1, but I don't remember which email I used.
 
-**Assistente:** Para consultar o pedido nº 1, preciso do e-mail utilizado na compra. Você consegue informá-lo?
+**Assistant:** To look up order 1, I need the email address used for the purchase. Could you provide it?
 
-### Pergunta fora do escopo
+### Out-of-scope request
 
-**Cliente:** Como vai estar o tempo amanhã em Campo Grande? Vai chover?
+**Customer:** What will the weather be like tomorrow in Campo Grande? Will it rain?
 
-**Assistente:** Não consigo consultar a previsão do tempo por aqui. Para saber se vai chover amanhã em Campo Grande, consulte um aplicativo ou site de previsão meteorológica.
+**Assistant:** I can't check the weather forecast here. To find out whether it will rain tomorrow in Campo Grande, please use a weather app or website.
 
-### Múltiplas intenções
+### Multiple intents in one message
 
-**Cliente:** Quero um violão folk até 1000 reais, saber o horário da loja, consultar meu pedido e conhecer as promoções.
+**Customer:** I want a folk acoustic guitar for up to BRL 1,000, the store's opening hours, information about my order, and current promotions.
 
-**Assistente:** Claro! Encontrei estas informações:
+**Assistant:** Here is what I found:
 
-**Violões folk até R$ 1.000:** Tagima Dallas (R$ 749,00), Yamaha F310 (R$ 699,90), Giannini GF-1R (R$ 579,90) e Shelby SN-100 (R$ 549,00), todos disponíveis.
+**Folk acoustic guitars up to BRL 1,000:** Tagima Dallas (BRL 749.00), Yamaha F310 (BRL 699.90), Giannini GF-1R (BRL 579.90), and Shelby SN-100 (BRL 549.00), all available.
 
-**Horário da loja:** segunda a sexta, das 9h às 18h; sábado, das 9h às 13h; domingos e feriados, fechado.
+**Opening hours:** Monday through Friday, 9 a.m. to 6 p.m.; Saturday, 9 a.m. to 1 p.m.; closed on Sundays and public holidays.
 
-**Consulta do pedido:** para consultar, preciso do número do pedido e do e-mail utilizado na compra.
+**Order lookup:** I need the order number and the email used for the purchase.
 
-**Promoções ativas:** Crafter HT-100 (R$ 1.967,18), Taylor 110e (R$ 5.519,08), Ohana CK-20 (R$ 439,20) e Kalani KAL-700T (R$ 323,10). Promoções e desconto de PIX não são cumulativos.
+**Active promotions:** Crafter HT-100 (BRL 1,967.18), Taylor 110e (BRL 5,519.08), Ohana CK-20 (BRL 439.20), and Kalani KAL-700T (BRL 323.10). Promotional and PIX discounts cannot be combined.
 
-## Testes e validação
+## Testing and validation
 
-Execute:
+Run the test suite:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Na validação local de 4 de novembro de 2026, a suíte terminou com **49 testes aprovados**. Os testes cobrem consultas a produtos, filtros, normalização de marcas, pedidos, promoções, políticas, contratos Pydantic e integração do fluxo. As chamadas ao modelo são simuladas em parte dos testes automatizados; também foram realizadas interações reais com a API durante o desenvolvimento.
+During local validation on November 4, 2026, **all 49 tests passed**. Tests cover product queries, filters, brand normalization, orders, promotions, store policies, Pydantic schemas, and pipeline integration. Model calls are mocked in part of the automated suite; real API interactions were also tested during development.
 
-Alguns defeitos foram descobertos nessas interações e corrigidos: a interpretação de `Yamaha ou Tagima` como uma única marca, a confusão entre uma afirmação sobre preço e um orçamento de compra, e a busca por `folk` apenas no nome de determinados produtos.
+Some issues were discovered and corrected during those interactions: interpreting `Yamaha or Tagima` as a single brand, mistaking a statement about a product's price for a purchasing budget, and searching for `folk` only in certain product names rather than their descriptions.
 
-## Decisões e limitações
+## Design decisions and limitations
 
-A solução utiliza arquivos locais porque o desafio já fornece uma base delimitada. Um banco de dados ou API externa adicionaria infraestrutura sem ser necessário para demonstrar a interpretação e as consultas. Da mesma forma, foi escolhida uma interface de terminal para concentrar o trabalho na lógica do agente.
+Local files were used because the challenge provides a bounded dataset. Adding a database or external API would introduce infrastructure that is unnecessary to demonstrate interpretation and retrieval. A terminal interface was chosen for the same reason: to focus on the agent's behavior.
 
-O uso de um executor próprio, em vez de delegar as consultas diretamente ao modelo por chamadas de ferramentas, permitiu testar regras comerciais e filtros independentemente da LLM. Em contrapartida, essa decisão exige manter os contratos e o roteamento dos comandos.
+Using a dedicated executor rather than letting the model query data directly through tool calls made it possible to test filters and commercial rules independently of the LLM. The trade-off is maintaining the command schemas and routing logic.
 
-Limitações conhecidas:
+Known limitations:
 
-- **Sem memória entre turnos:** cada mensagem é interpretada de maneira independente. Uma segunda mensagem não recupera automaticamente informações enviadas na primeira.
-- **Dados estáticos:** os valores e estoques refletem os CSV fornecidos. Não há atualização ou reserva de produtos em tempo real.
-- **Busca textual:** características são localizadas nos nomes e descrições; não há embeddings ou busca semântica vetorial.
-- **Políticas:** o texto completo do PDF é fornecido ao compositor. Não existe recuperação por seção ou trecho relevante.
-- **Resposta generativa:** mesmo quando os dados estão corretos, a LLM pode omitir itens ou redigir informações incorretamente. Os prompts impõem limites, mas não há uma verificação determinística completa da resposta final.
-- **Tratamento de falhas:** erros da API são apresentados no terminal; não foram implementados retries e gerenciamento avançado de indisponibilidade.
+- **No cross-turn memory:** Each message is processed independently. A follow-up message does not automatically recover information from previous turns.
+- **Static data:** Prices and inventory reflect the supplied CSV files. There are no real-time updates or product reservations.
+- **Text-based search:** Features are matched against names and descriptions; embeddings and vector-based retrieval are not implemented.
+- **Store policies:** The full PDF text is passed to the response composer. There is no section-level retrieval.
+- **Generative responses:** Even with correct retrieved data, the LLM may omit items or introduce inaccuracies. Prompts impose constraints, but there is no complete deterministic validation of the final response.
+- **Error handling:** API failures are reported in the terminal; retries and advanced recovery mechanisms are not implemented.
 
-Não foram desenvolvidas integrações com WhatsApp, autenticação de usuários, persistência de conversas ou criação e alteração de pedidos.
+WhatsApp integration, user authentication, conversation persistence, and order creation or modification were outside the implementation scope.
 
-Como possíveis evoluções, eu priorizaria a memória conversacional, uma fonte de dados atualizável, recuperação mais seletiva de políticas e uma validação final de preços e condições comerciais antes da resposta ao cliente.
+Given more time, I would prioritize conversational memory, an updatable data source, more targeted policy retrieval, and final validation of prices and commercial conditions before replying to the customer.
 
-## Uso de IA no desenvolvimento
+## Use of AI during development
 
-O ChatGPT foi utilizado como assistente técnico durante o desenvolvimento, incluindo discussões de arquitetura, esclarecimento de conceitos, sugestões de implementação, revisão de código, elaboração de testes e apoio à documentação.
+ChatGPT was used as a technical assistant during development, including architecture discussions, concept explanations, implementation suggestions, code review, test development, and documentation support.
 
-O trabalho foi conduzido de forma iterativa, com implementação, execução local, análise dos resultados e correções a partir de comportamentos observados. As decisões sobre escopo, arquitetura e validação foram realizadas ao longo desse processo.
+The work followed an iterative process of implementation, local execution, result analysis, and corrections based on observed behavior. Decisions about scope, architecture, and validation were made throughout that process.
 
-Os testes automatizados e as interações reais foram utilizados para verificar as sugestões antes de incorporá-las à solução.
+Automated tests and real interactions were used to verify suggestions before they were incorporated into the solution.
 
-## Autor
+## Author
 
 Luiz Henrique Rodrigues  
 GitHub: https://github.com/Luizzinnho
