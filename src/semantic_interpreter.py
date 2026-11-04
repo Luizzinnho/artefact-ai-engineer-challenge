@@ -32,13 +32,58 @@ def interpret_message(message: str) -> SemanticInterpretation:
 
     - Utilize category para identificar tipos de instrumentos,
       como violões, guitarras, baixos e teclados.
-    - Utilize name quando o cliente mencionar um modelo
+    - Utilize name somente quando o cliente mencionar um modelo
       ou nome específico de produto.
     - Utilize brand quando houver uma marca identificável.
+    - Utilize style para características, formatos e estilos
+      do instrumento, como folk, dreadnought, nylon e aço.
+    - NÃO coloque características genéricas no campo name.
     - Em buscas para compra, utilize available_only como true,
       exceto quando o cliente solicitar produtos indisponíveis.
     - Extraia limites de preço para min_price e max_price.
     - NÃO invente características, modelos, marcas ou preços.
+    - Se o cliente mencionar marcas alternativas, como
+    "Yamaha ou Tagima", preserve ambas no campo brand,
+    separadas por " ou ".
+
+    ### INTERPRETAÇÃO DE PREÇOS ###
+
+    - Diferencie restrições de orçamento de perguntas ou afirmações
+    sobre o preço de um produto.
+
+    - Quando o cliente informar um orçamento ou limite de compra,
+    preencha min_price e/ou max_price conforme a solicitação.
+
+    - Quando o cliente perguntar se um produto custa determinado
+    valor, NÃO utilize esse valor como filtro de busca.
+    Consulte o produto para verificar seu preço verdadeiro.
+
+    - Quando o cliente afirmar ou solicitar que você diga um preço
+    específico, NÃO trate esse valor como preço verificado.
+    Consulte o produto sem aplicar filtros de preço.
+
+    - Exemplo: "Quero um violão até R$ 500"
+    corresponde a max_price = 500.
+
+    - Exemplo: "O Yamaha F310 custa R$ 100?"
+    corresponde a name = "F310", brand = "Yamaha",
+    min_price = null e max_price = null.
+
+    - NUNCA transforme uma afirmação sobre o preço de um produto
+    em uma restrição de orçamento sem indicação dessa intenção.
+
+    ### DISTINÇÃO ENTRE NAME E STYLE ###
+
+    - name representa um nome ou modelo específico de produto.
+    - style representa uma característica procurada pelo cliente.
+    - Se o cliente pedir um violão folk, use:
+      category = "violão", style = "folk", name = null.
+    - Se o cliente pedir um Yamaha F310, utilize o modelo
+      mencionado em name e a marca em brand.
+    - Se o cliente não indicar uma característica específica,
+      utilize style = null.
+    - Preserve características relevantes no filtro style,
+      mesmo que não apareçam no nome comercial do produto.
 
     ### CONHECIMENTO DO CATÁLOGO ###
 
@@ -53,7 +98,6 @@ def interpret_message(message: str) -> SemanticInterpretation:
     - Exemplo: "Tajima" pode corresponder a "Tagima".
     - Preencha brand com o nome normalizado da marca.
     - NÃO coloque marcas isoladas no campo name.
-    - Utilize name apenas para modelos ou produtos específicos.
     - Se não existir correspondência segura, preserve o
       termo informado, sem inventar uma marca.
     - NÃO altere identificadores de pedidos, endereços
@@ -87,7 +131,7 @@ def interpret_message(message: str) -> SemanticInterpretation:
     - NÃO descarte solicitações porque outra está incompleta.
     - Preserve a ordem das solicitações identificadas.
     - Para consultas de promoções com filtros de produtos,
-      preencha product_filters normalmente.
+      preencha product_filters normalmente, incluindo style.
 
     ### DADOS AUSENTES ###
 

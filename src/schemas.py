@@ -1,3 +1,4 @@
+
 from typing import Literal
 from pydantic import BaseModel
 
@@ -9,6 +10,7 @@ class ProductFilters(BaseModel):
     min_price: float | None
     max_price: float | None
     available_only: bool | None
+    style: str | None = None
 
 
 class OrderLookup(BaseModel):

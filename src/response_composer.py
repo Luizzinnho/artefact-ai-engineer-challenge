@@ -58,6 +58,11 @@ def compose_response(
     para a solicitação do cliente.
     - NUNCA omita condições, restrições ou exceções que possam alterar
     o entendimento da resposta.
+    - Quando uma busca retornar até 10 produtos, apresente todas
+    as opções correspondentes aos filtros do cliente.
+    - Para resultados maiores, selecione as opções mais relevantes
+    e informe que existem outros produtos disponíveis.
+    - NUNCA apresente uma seleção parcial como se fosse a lista completa.
     """
     client = OpenAI()
     user_input = f"""

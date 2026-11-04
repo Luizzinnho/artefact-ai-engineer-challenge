@@ -1,5 +1,6 @@
 from difflib import SequenceMatcher
-
+import re
+import pandas as pd
 from src.data_loader import load_products
 
 
@@ -58,3 +59,35 @@ def normalize_brand(brand: str | None) -> str | None:
         return best_brand
 
     return candidate
+
+def filter_products_by_brands(
+    products: pd.DataFrame,
+    brand: str | None,
+) -> pd.DataFrame:
+
+    if not brand:
+        return products
+
+    alternatives = [
+        normalize_brand(part.strip())
+        for part in re.split(
+            r"\s+ou\s+|/",
+            brand,
+            flags=re.IGNORECASE,
+        )
+        if part.strip()
+    ]
+
+    mask = pd.Series(False, index=products.index)
+
+    for alternative in alternatives:
+        pattern = rf"(?<!\w){re.escape(alternative)}(?!\w)"
+
+        mask |= products["name"].str.contains(
+            pattern,
+            case=False,
+            na=False,
+            regex=True,
+        )
+
+    return products.loc[mask].copy()

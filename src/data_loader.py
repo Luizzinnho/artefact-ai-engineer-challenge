@@ -46,6 +46,7 @@ def load_promotions() -> pd.DataFrame:
 # 2. PRODUCT SEARCH
 
 
+
 def search_products(
     name: str | None = None,
     max_price: float | None = None,
@@ -53,6 +54,7 @@ def search_products(
     category: str | None = None,
     available_only: bool | None = None,
     product_id: int | None = None,
+    style: str | None = None,
 ) -> pd.DataFrame:
 
     products = load_products()
@@ -80,6 +82,27 @@ def search_products(
                 na=False,
                 regex=False,
             )
+        ]
+
+    if style is not None and style.strip():
+        term = style.strip()
+
+        name_matches = filtered["name"].str.contains(
+            term,
+            case=False,
+            na=False,
+            regex=False,
+        )
+
+        description_matches = filtered["description"].str.contains(
+            term,
+            case=False,
+            na=False,
+            regex=False,
+        )
+
+        filtered = filtered[
+            name_matches | description_matches
         ]
 
     if max_price is not None:
@@ -116,6 +139,7 @@ def search_products(
         ]
 
     return filtered.copy()
+
 
 
 # 3. ORDER LOOKUP

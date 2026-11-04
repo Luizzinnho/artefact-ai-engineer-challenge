@@ -6,7 +6,7 @@ from src.data_loader import (
     search_promotions,
 )
 from src.policy_loader import load_policies
-from src.brand_normalizer import normalize_brand
+from src.brand_normalizer import filter_products_by_brands
 
 
 def execute_commands(
@@ -23,7 +23,7 @@ def execute_commands(
                 else {}
             )
 
-            brand = normalize_brand(filters.pop("brand", None))
+            brand = filters.pop("brand", None)
             filters.setdefault("available_only", True)
 
             products = search_products(**filters)
@@ -38,14 +38,7 @@ def execute_commands(
                 continue
 
             if brand:
-                products = products[
-                    products["name"].str.contains(
-                        brand,
-                        case=False,
-                        na=False,
-                        regex=False,
-                    )
-                ]
+                products = filter_products_by_brands(products, brand)
 
             results.append({
                 "intent": command.intent,
@@ -145,20 +138,13 @@ def execute_commands(
                     if command.product_filters
                     else {}
                 )
-            brand = normalize_brand(filters.pop("brand", None))
+            brand = filters.pop("brand", None)
             min_price = filters.pop("min_price", None)
             max_price = filters.pop("max_price", None)
             filters.setdefault("available_only", True)
             products = search_products(**filters)
             if brand:
-                products = products[
-                products["name"].str.contains(
-                brand,
-                case=False,
-                na=False,
-                regex=False,
-                )
-                ]
+                products = filter_products_by_brands(products, brand)
             filtered_promotions = active_promotions[
                 active_promotions["product_id"].isin(products["product_id"])
                 ]
