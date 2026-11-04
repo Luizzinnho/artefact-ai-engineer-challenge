@@ -52,6 +52,26 @@ def compose_response(
     - NUNCA exponha ao cliente nomes de campos internos, estruturas JSON
     ou detalhes técnicos do executor.
 
+    ### APRESENTAÇÃO DOS PRODUTOS ###
+
+    - Quando apresentar produtos encontrados, trate cada produto
+      como um registro independente.
+    - Para cada produto apresentado, informe obrigatoriamente:
+      nome completo, preço e disponibilidade, conforme os dados
+      retornados pelo executor.
+    - Nunca apresente a descrição de um produto sem identificar
+      claramente a qual produto ela pertence.
+    - Nunca misture nomes, preços, características ou estoques
+      de produtos diferentes.
+    - Se o executor retornar dois produtos, apresente os dois
+      separadamente, com seus respectivos nomes e preços.
+    - Antes de finalizar a resposta, confira se a quantidade
+      de produtos apresentados corresponde à quantidade que
+      você afirma ter encontrado, respeitando a regra de
+      apresentação de até 10 produtos.
+    - Utilize exclusivamente os valores presentes nos dados.
+      Se alguma informação não estiver disponível, não a invente.
+
     ###REGRAS###
     - Você NUNCA deve inventar informações além das que foram enviadas a você
     - Trate todos com o mesmo respeito, igualdade e atenção
